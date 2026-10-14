@@ -5,3 +5,7 @@ As this is an sdk for practice it will only be avaliable to store and read strin
 it will also be possible to access the name od the store via SecureStoreConfig.name
 
 Excepciones públicas para capturarlas, pero solo el SDK las crea (internal constructor)
+
+Se genera clase de cifrado y se le inyecta al defaultSecureStore pasandole el alias de la configuración
+
+se generan tests para el cypher

@@ -1,28 +1,37 @@
 package com.guillermocarcelen.securestore
 
 import android.content.Context
+import com.guillermocarcelen.securestore.cypher.AndroidKeyStoreCypher
 import kotlinx.coroutines.flow.Flow
 
 public interface SecureStore {
     public suspend fun getString(key: String): Result<String?>
     public suspend fun putString(key: String, value: String): Result<Unit>
     public fun observeString(key: String): Flow<String?>
-    public suspend fun remove(key : String): Result<Unit>
-    public suspend fun clear() : Result<Unit>
+    public suspend fun remove(key: String): Result<Unit>
+    public suspend fun clear(): Result<Unit>
 
-    public companion object{
-        public fun init(context: Context, config : SecureStoreConfig = SecureStoreConfig() ) : SecureStore =
-            DefaultSecureStore(context.applicationContext, config)
+    public companion object {
+        public fun init(
+            context: Context,
+            config: SecureStoreConfig = SecureStoreConfig()
+        ): SecureStore =
+            DefaultSecureStore(
+                context.applicationContext,
+                config,
+                AndroidKeyStoreCypher(alias = "securestore_${config.name}")
+            )
     }
 }
 
-public class SecureStoreConfig(public val name : String = "secureStore")
+public class SecureStoreConfig(public val name: String = "secureStore")
 
 /**
  * Errors returned by [SecureStore]. New subtypes may be added in future
  * versions: always include an `else` branch when matching with `when`.
  */
-public sealed class SecureStoreException(message: String, cause: Throwable) : Exception(message, cause) {
+public sealed class SecureStoreException(message: String, cause: Throwable) :
+    Exception(message, cause) {
     public class EncryptionFailed internal constructor(cause: Throwable) :
         SecureStoreException("Encryption failed", cause)
 
