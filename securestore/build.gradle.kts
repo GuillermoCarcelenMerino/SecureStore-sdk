@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kover)
-    `maven-publish`
+    alias(libs.plugins.vanniktech.publish)
 }
 
 // Coordinates other builds use to depend on the SDK (includeBuild or Maven): io.github.guillermocarcelenmerino:securestore
@@ -27,31 +27,41 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-
-    publishing {
-        singleVariant("release") {
-            withSourcesJar()
-            withJavadocJar()
-        }
-    }
-
 }
 kotlin {
     explicitApi()
 }
 
-publishing {
-    publications {
-        register<MavenPublication>("release") {
-            artifactId = "securestore"
-            afterEvaluate { from(components["release"]) }
-            pom {
-                name.set("SecureStore")
-                description.set("Encrypted key-value storage for Android, backed by the Android Keystore.")
-                url.set("https://github.com/GuillermoCarcelenMerino/SecureStore-sdk")
-                licenses { license { name.set("Apache-2.0"); url.set("https://www.apache.org/licenses/LICENSE-2.0") } }
-                developers { developer { id.set("GuillermoCarcelenMerino"); name.set("Guillermo Carcelén") } }
+// Publishing to Maven Central. Credentials and the GPG key are read from the user's
+// ~/.gradle/gradle.properties (mavenCentralUsername/Password, signingInMemoryKey*), never from the repo.
+mavenPublishing {
+    coordinates(group.toString(), "securestore", version.toString())
+    publishToMavenCentral()
+    signAllPublications()
+
+    pom {
+        name.set("SecureStore")
+        description.set("Encrypted key-value storage for Android, backed by the Android Keystore.")
+        inceptionYear.set("2026")
+        url.set("https://github.com/GuillermoCarcelenMerino/SecureStore-sdk")
+        licenses {
+            license {
+                name.set("Apache-2.0")
+                url.set("https://www.apache.org/licenses/LICENSE-2.0")
+                distribution.set("repo")
             }
+        }
+        developers {
+            developer {
+                id.set("GuillermoCarcelenMerino")
+                name.set("Guillermo Carcelén")
+                url.set("https://github.com/GuillermoCarcelenMerino")
+            }
+        }
+        scm {
+            url.set("https://github.com/GuillermoCarcelenMerino/SecureStore-sdk")
+            connection.set("scm:git:git://github.com/GuillermoCarcelenMerino/SecureStore-sdk.git")
+            developerConnection.set("scm:git:ssh://git@github.com/GuillermoCarcelenMerino/SecureStore-sdk.git")
         }
     }
 }
