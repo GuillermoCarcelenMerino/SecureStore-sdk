@@ -5,7 +5,7 @@ plugins {
 android {
     namespace = "com.guillermocarcelen.securestore"
     compileSdk {
-        version = release(36) {
+        version = release(37) {
             minorApiLevel = 1
         }
     }
@@ -33,5 +33,4 @@ dependencies {
     api(libs.kotlinx.coroutines.core)
     testImplementation(libs.mockk.android)
     testImplementation(libs.kotlinx.coroutines.test)
-
 }
