@@ -31,5 +31,7 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     // Source: https://mvnrepository.com/artifact/org.jetbrains.kotlinx/kotlinx-coroutines-core
     api(libs.kotlinx.coroutines.core)
+    testImplementation(libs.mockk.android)
+    testImplementation(libs.kotlinx.coroutines.test)
 
 }
