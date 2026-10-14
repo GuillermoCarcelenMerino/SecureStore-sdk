@@ -23,7 +23,11 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // R8 on, to check that the SDK keeps working when an app shrinks and obfuscates it.
+            isMinifyEnabled = true
+            isShrinkResources = true
+            // Sample app only: signed with the debug key so the release build can be installed for testing.
+            signingConfig = signingConfigs.getByName("debug")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
