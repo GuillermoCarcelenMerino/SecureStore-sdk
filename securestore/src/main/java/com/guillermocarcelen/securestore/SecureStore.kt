@@ -2,6 +2,7 @@ package com.guillermocarcelen.securestore
 
 import android.content.Context
 import com.guillermocarcelen.securestore.cypher.AndroidKeyStoreCypher
+import com.guillermocarcelen.securestore.storage.DataStoreStorage
 import kotlinx.coroutines.flow.Flow
 
 public interface SecureStore {
@@ -12,14 +13,17 @@ public interface SecureStore {
     public suspend fun clear(): Result<Unit>
 
     public companion object {
+        /**
+         * Creates the store named [SecureStoreConfig.name]. Create one instance per name and reuse it
+         * (for example as an app-wide singleton): two instances for the same name are not supported.
+         */
         public fun init(
             context: Context,
             config: SecureStoreConfig = SecureStoreConfig()
         ): SecureStore =
             DefaultSecureStore(
-                context.applicationContext,
-                config,
-                AndroidKeyStoreCypher(alias = "securestore_${config.name}")
+                storage = DataStoreStorage(context.applicationContext, config.name),
+                cypher = AndroidKeyStoreCypher(alias = "securestore_${config.name}"),
             )
     }
 }

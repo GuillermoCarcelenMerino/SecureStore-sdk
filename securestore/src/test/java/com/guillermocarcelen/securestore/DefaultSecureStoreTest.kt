@@ -1,20 +1,21 @@
 package com.guillermocarcelen.securestore
 
-import android.content.Context
 import com.guillermocarcelen.securestore.cypher.FakeCypher
-import io.mockk.mockk
+import com.guillermocarcelen.securestore.storage.FakeStorage
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.IOException
 
 class DefaultSecureStoreTest {
 
-    private val context: Context = mockk(relaxed = true)
+    private val storage = FakeStorage()
     private val cypher = FakeCypher()
-    private val store = DefaultSecureStore(context, SecureStoreConfig(), cypher)
+    private val store = DefaultSecureStore(storage, cypher)
 
     @Test
     fun `when user add a value it is saved`() = runTest {
@@ -100,6 +101,32 @@ class DefaultSecureStoreTest {
         val result = store.getString("token")
 
         assertTrue(result.exceptionOrNull() is SecureStoreException.KeyInvalidated)
+    }
+
+    @Test
+    fun `the stored value is not the plain text`() = runTest {
+        store.putString("token", "abc")
+
+        assertNotEquals("abc", storage.values.value["token"])
+    }
+
+    @Test
+    fun `a disk error is returned as StorageFailure`() = runTest {
+        storage.failWith = IOException("disk full")
+
+        val result = store.putString("token", "abc")
+
+        assertTrue(result.exceptionOrNull() is SecureStoreException.StorageFailure)
+    }
+
+    @Test
+    fun `observe reports a decryption error as a SecureStoreException`() = runTest {
+        store.putString("token", "abc")
+        cypher.failWith = SecureStoreException.KeyInvalidated(IllegalStateException())
+
+        val error = runCatching { store.observeString("token").first() }.exceptionOrNull()
+
+        assertTrue(error is SecureStoreException.KeyInvalidated)
     }
 
     @Test

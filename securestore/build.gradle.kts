@@ -5,7 +5,7 @@ plugins {
 android {
     namespace = "com.guillermocarcelen.securestore"
     compileSdk {
-        version = release(37) {
+        version = release(36) {
             minorApiLevel = 1
         }
     }
@@ -32,6 +32,8 @@ dependencies {
     androidTestImplementation(libs.androidx.test.runner)
     // Source: https://mvnrepository.com/artifact/org.jetbrains.kotlinx/kotlinx-coroutines-core
     api(libs.kotlinx.coroutines.core)
+    implementation(libs.androidx.datastore.preferences)
+    androidTestImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockk.android)
     testImplementation(libs.kotlinx.coroutines.test)
 }
