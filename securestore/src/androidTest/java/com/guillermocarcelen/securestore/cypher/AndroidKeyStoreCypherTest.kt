@@ -104,6 +104,16 @@ class AndroidKeyStoreCypherTest {
         }
     }
 
+    @Test
+    fun after_deleting_the_key_old_data_is_unreadable_and_a_new_key_works() {
+        val oldData = cypher.encrypt(plain)
+
+        cypher.deleteKey()
+
+        assertThrows(SecureStoreException.EncryptionFailed::class.java) { cypher.decrypt(oldData) }
+        assertArrayEquals(plain, cypher.decrypt(cypher.encrypt(plain)))
+    }
+
     private companion object {
         const val ALIAS = "securestore_test"
         const val OTHER_ALIAS = "securestore_test_other"

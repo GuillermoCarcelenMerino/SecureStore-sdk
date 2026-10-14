@@ -47,6 +47,10 @@ internal class AndroidKeyStoreCypher(
         }
     }
 
+    override fun deleteKey() {
+        keyStore.deleteEntry(alias)
+    }
+
     private fun getOrCreateKey(): SecretKey =
         (keyStore.getKey(alias, null) as? SecretKey) ?: createSecretKey()
 

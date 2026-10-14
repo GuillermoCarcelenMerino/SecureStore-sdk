@@ -130,6 +130,51 @@ class DefaultSecureStoreTest {
     }
 
     @Test
+    fun `an invalidated key deletes the key and the unreadable data`() = runTest {
+        store.putString("token", "abc")
+        store.putString("user", "guillermo")
+        cypher.failWith = SecureStoreException.KeyInvalidated(IllegalStateException())
+
+        store.getString("token")
+
+        assertEquals(1, cypher.deletedKeys)
+        assertTrue(storage.values.value.isEmpty())
+    }
+
+    @Test
+    fun `after an invalidated key the store works again with a new key`() = runTest {
+        store.putString("token", "abc")
+        cypher.failWith = SecureStoreException.KeyInvalidated(IllegalStateException())
+        store.getString("token")
+
+        store.putString("token", "new")
+
+        assertEquals("new", store.getString("token").getOrThrow())
+    }
+
+    @Test
+    fun `observe recovers from an invalidated key`() = runTest {
+        store.putString("token", "abc")
+        cypher.failWith = SecureStoreException.KeyInvalidated(IllegalStateException())
+
+        runCatching { store.observeString("token").first() }
+
+        assertEquals(1, cypher.deletedKeys)
+        assertTrue(storage.values.value.isEmpty())
+    }
+
+    @Test
+    fun `other errors do not delete the key or the data`() = runTest {
+        store.putString("token", "abc")
+        cypher.failWith = SecureStoreException.EncryptionFailed(IllegalStateException())
+
+        store.getString("token")
+
+        assertEquals(0, cypher.deletedKeys)
+        assertTrue(storage.values.value.containsKey("token"))
+    }
+
+    @Test
     fun `an unexpected error is returned as StorageFailure`() = runTest {
         cypher.failWith = IllegalStateException("disk full")
 

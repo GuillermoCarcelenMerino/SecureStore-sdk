@@ -26,7 +26,11 @@ internal class DefaultSecureStore(
     override fun observeString(key: String): Flow<String?> =
         storage.observe(key)
             .map { encoded -> encoded?.let { decryptText(it) } }
-            .catch { throw it.toSecureStoreException() }
+            .catch { error ->
+                val translated = error.toSecureStoreException()
+                if (translated is SecureStoreException.KeyInvalidated) recoverFromInvalidatedKey()
+                throw translated
+            }
 
     override suspend fun remove(key: String): Result<Unit> =
         storageOperation { storage.remove(key) }
@@ -34,14 +38,27 @@ internal class DefaultSecureStore(
     override suspend fun clear(): Result<Unit> =
         storageOperation { storage.clear() }
 
-    private inline fun <T> storageOperation(block: () -> T): Result<T> =
+    private suspend inline fun <T> storageOperation(block: () -> T): Result<T> =
         try {
             Result.success(block())
         } catch (e: CancellationException) {
             throw e                                           // a cancelled coroutine must stay cancelled
+        } catch (e: SecureStoreException.KeyInvalidated) {
+            recoverFromInvalidatedKey()
+            Result.failure(e)                                 // the caller still learns the data was lost
         } catch (e: Exception) {
             Result.failure(e.toSecureStoreException())
         }
+
+    /**
+     * An invalidated key can never be used again and the data encrypted with it is lost.
+     * Deleting both lets the next operation create a new key and start with an empty store.
+     */
+    private suspend fun recoverFromInvalidatedKey() {
+        // Best effort: the original KeyInvalidated error is what the caller must receive.
+        runCatching { cypher.deleteKey() }
+        runCatching { storage.clear() }
+    }
 
     private fun Throwable.toSecureStoreException(): Throwable = when (this) {
         is CancellationException, is SecureStoreException -> this

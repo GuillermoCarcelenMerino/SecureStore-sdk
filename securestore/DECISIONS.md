@@ -21,6 +21,7 @@ Registro de las decisiones tomadas en el SDK y su motivo. Cada entrada: qué se 
 9. **Android Keystore + AES-256/GCM.** La clave se crea dentro del Keystore y nunca sale de él. GCM cifra y además detecta manipulaciones (falla al descifrar en lugar de devolver datos corruptos).
 10. **IV aleatorio de 12 bytes por cada cifrado**, generado por Android y guardado delante del dato (`IV + cifrado + tag`). Nunca se reutiliza un IV con la misma clave.
 11. **Alias de la clave: `securestore_<name>`**, una clave por almacén.
+11b. **Recuperación de una clave invalidada.** Si Android invalida la clave (`KeyPermanentlyInvalidatedException`, por ejemplo al quitar el bloqueo de pantalla en claves que lo exigen), esa clave existe pero no se puede volver a usar, y sin recuperación el almacén quedaría bloqueado para siempre. Al detectarlo, el SDK borra la clave y los datos de ese almacén (ya ilegibles) y devuelve `KeyInvalidated` **esa vez**, para que la app sepa que se han perdido. La siguiente operación crea una clave nueva y el almacén vuelve a funcionar, vacío.
 12. **Base64 para guardar el resultado como texto.** El cifrado produce bytes arbitrarios que no son texto válido; Base64 los representa sin pérdida. No aporta seguridad: la seguridad la da el cifrado.
 
 ## Almacenamiento
@@ -43,5 +44,4 @@ Registro de las decisiones tomadas en el SDK y su motivo. Cada entrada: qué se 
 ## Pendiente / limitaciones conocidas
 
 - **Copias de seguridad:** el backup de Android copia el archivo cifrado pero no la clave del Keystore. Tras restaurar en otro dispositivo los datos no se pueden descifrar (`KeyInvalidated` o `EncryptionFailed`). Hoy se documenta en el README para que la app excluya el archivo del backup; queda pendiente decidir si el SDK debe borrar automáticamente los datos ilegibles.
-- **Clave invalidada:** si el sistema invalida la clave (`KeyPermanentlyInvalidatedException`), `getOrCreateKey` sigue devolviendo la clave inválida y todas las operaciones fallan con `KeyInvalidated`. Pendiente: borrar la clave y los datos ilegibles y crear una nueva.
 - **Dispositivos rooteados o comprometidos:** el Keystore reduce el riesgo, pero no protege frente a código malicioso ejecutándose dentro de la propia app.

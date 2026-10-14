@@ -98,7 +98,7 @@ Todas las operaciones `suspend` devuelven `Result`. Los errores son siempre una 
 | Tipo | Cuándo ocurre |
 |---|---|
 | `EncryptionFailed` | Falla el cifrado o el descifrado (por ejemplo, datos manipulados o de otra clave). |
-| `KeyInvalidated` | El sistema ha invalidado la clave del Keystore. Los datos cifrados con ella ya no se pueden recuperar. |
+| `KeyInvalidated` | El sistema ha invalidado la clave del Keystore. El SDK borra la clave y los datos de ese almacén (ya irrecuperables) y la siguiente operación funciona con una clave nueva. |
 | `StorageFailure` | No se ha podido leer o escribir el archivo. |
 
 ```kotlin
@@ -181,7 +181,6 @@ Tests:
 ## Limitaciones
 
 - Solo guarda `String`.
-- Si el sistema invalida la clave del Keystore, el SDK todavía no la regenera: ese almacén deja de poder cifrar hasta que se cree una clave nueva (pendiente).
 - Una instancia por nombre de almacén.
 - Pensado para valores pequeños; no para archivos ni grandes volúmenes de datos.
 - El Keystore protege la clave, pero no frente a código malicioso que se ejecute dentro de la propia app ni en dispositivos comprometidos.
