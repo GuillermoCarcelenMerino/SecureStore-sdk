@@ -24,7 +24,7 @@ y en el `build.gradle.kts` del módulo de la app:
 
 ```kotlin
 dependencies {
-    implementation("com.guillermocarcelen:securestore")
+    implementation("io.github.guillermocarcelenmerino:securestore")
 }
 ```
 

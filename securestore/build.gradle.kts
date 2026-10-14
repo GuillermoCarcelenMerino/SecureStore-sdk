@@ -4,8 +4,8 @@ plugins {
     `maven-publish`
 }
 
-// Coordinates other builds use to depend on the SDK (includeBuild or Maven): com.guillermocarcelen:securestore
-group = "com.guillermocarcelen"
+// Coordinates other builds use to depend on the SDK (includeBuild or Maven): io.github.guillermocarcelenmerino:securestore
+group = "io.github.guillermocarcelenmerino"
 version = "0.1.0"
 
 
