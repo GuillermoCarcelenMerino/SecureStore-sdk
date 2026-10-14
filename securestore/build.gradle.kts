@@ -1,10 +1,13 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kover)
+    `maven-publish`
 }
 
 // Coordinates other builds use to depend on the SDK (includeBuild or Maven): com.guillermocarcelen:securestore
 group = "com.guillermocarcelen"
+version = "0.1.0"
+
 
 android {
     namespace = "com.guillermocarcelen.securestore"
@@ -25,9 +28,32 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+            withJavadocJar()
+        }
+    }
+
 }
 kotlin {
     explicitApi()
+}
+
+publishing {
+    publications {
+        register<MavenPublication>("release") {
+            artifactId = "securestore"
+            afterEvaluate { from(components["release"]) }
+            pom {
+                name.set("SecureStore")
+                description.set("Encrypted key-value storage for Android, backed by the Android Keystore.")
+                url.set("https://github.com/GuillermoCarcelenMerino/SecureStore-sdk")
+                licenses { license { name.set("Apache-2.0"); url.set("https://www.apache.org/licenses/LICENSE-2.0") } }
+                developers { developer { id.set("GuillermoCarcelenMerino"); name.set("Guillermo Carcelén") } }
+            }
+        }
+    }
 }
 
 kover {
