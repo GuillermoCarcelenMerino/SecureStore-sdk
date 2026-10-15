@@ -6,7 +6,7 @@ plugins {
 
 // Coordinates other builds use to depend on the SDK (includeBuild or Maven): io.github.guillermocarcelenmerino:securestore
 group = "io.github.guillermocarcelenmerino"
-version = "0.1.0"
+version = "0.1.1"
 
 
 android {
