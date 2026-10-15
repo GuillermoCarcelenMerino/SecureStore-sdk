@@ -1,5 +1,9 @@
 # SecureStore
 
+[![CI](https://github.com/GuillermoCarcelenMerino/SecureStore-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/GuillermoCarcelenMerino/SecureStore-sdk/actions/workflows/ci.yml)
+[![CD](https://github.com/GuillermoCarcelenMerino/SecureStore-sdk/actions/workflows/cd.yml/badge.svg)](https://github.com/GuillermoCarcelenMerino/SecureStore-sdk/actions/workflows/cd.yml)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.guillermocarcelenmerino/securestore)](https://central.sonatype.com/artifact/io.github.guillermocarcelenmerino/securestore)
+
 SDK de Android para guardar valores pequeños y sensibles (tokens, identificadores, preferencias privadas) **cifrados en el dispositivo**.
 
 - Cifrado **AES-256/GCM** con una clave que vive en el **Android Keystore** y nunca sale de él.
@@ -12,25 +16,25 @@ SDK de Android para guardar valores pequeños y sensibles (tokens, identificador
 
 ## Instalación
 
-El SDK todavía no está publicado en un repositorio Maven. Hay dos formas de usarlo:
+El SDK se publica en **Maven Central**. Con `mavenCentral()` en los repositorios de tu proyecto (viene por defecto en los proyectos Android), añade en el `build.gradle.kts` del módulo de la app:
 
-**1. Composite build** (desarrollo, sin publicar). En el `settings.gradle.kts` de tu app:
+```kotlin
+dependencies {
+    implementation("io.github.guillermocarcelenmerino:securestore:0.1.0")
+}
+```
+
+Las versiones disponibles están en [Maven Central](https://central.sonatype.com/artifact/io.github.guillermocarcelenmerino/securestore) y en las [Releases](https://github.com/GuillermoCarcelenMerino/SecureStore-sdk/releases) del repositorio.
+
+Requisitos de la app: `minSdk` 24 o superior y `compileSdk` 36 o superior.
+
+**Para desarrollar el SDK junto con una app** sin publicar cada cambio, usa un *composite build*. En el `settings.gradle.kts` de la app:
 
 ```kotlin
 includeBuild("../SecureStoreSDK")
 ```
 
-y en el `build.gradle.kts` del módulo de la app:
-
-```kotlin
-dependencies {
-    implementation("io.github.guillermocarcelenmerino:securestore")
-}
-```
-
-**2. Maven local.** Requiere configurar `maven-publish` en el módulo `securestore` (pendiente) y ejecutar `./gradlew :securestore:publishToMavenLocal`.
-
-Requisitos de la app: `minSdk` 24 o superior y `compileSdk` 36 o superior.
+y la dependencia sin versión: `implementation("io.github.guillermocarcelenmerino:securestore")`. Gradle compila el SDK directamente desde su código fuente.
 
 ## Uso
 
@@ -177,6 +181,27 @@ Tests:
 - **Unidad (JVM):** `DefaultSecureStore` con `FakeStorage` y `FakeCypher`, y `SecureStoreConfig`.
 - **Instrumentados:** `AndroidKeyStoreCypher` (Keystore real), `DataStoreStorage` (archivos reales) y una prueba de integración que verifica que el archivo en disco no contiene el valor en claro.
 - **Kover** mide los tests de unidad y excluye las clases que solo se ejecutan en un dispositivo, cubiertas por los tests instrumentados.
+
+## Integración y despliegue continuos (CI/CD)
+
+El repositorio usa GitHub Actions con dos workflows en `.github/workflows/`:
+
+| Workflow | Cuándo se ejecuta | Qué hace |
+|---|---|---|
+| **CI** (`ci.yml`) | En cada pull request hacia `master`: al abrirla, con cada push nuevo y al reabrirla | Compila el SDK y la app de ejemplo en release (con R8), pasa lint y los tests de unidad, y comprueba la cobertura mínima con Kover |
+| **CD** (`cd.yml`) | Al **publicar una Release** en GitHub | Vuelve a pasar los tests y la cobertura, firma los artefactos con GPG y los sube a Maven Central |
+
+Los tests instrumentados no se ejecutan en CI: necesitan un emulador o dispositivo y se lanzan en local con `connectedDebugAndroidTest`.
+
+### Cómo publicar una versión
+
+1. En una rama, sube `version` en `securestore/build.gradle.kts` (por ejemplo, `0.1.1`) y fusiónala en `master` con una pull request con el CI en verde.
+2. En GitHub, **Releases → Draft a new release**: crea el tag `v0.1.1` (el mismo número que `version`) sobre `master`, añade las notas de la versión y pulsa **Publish release**.
+3. El CD sube la versión a Maven Central como borrador. Revísala en [central.sonatype.com](https://central.sonatype.com) → **Deployments** y pulsa **Publish**.
+
+Una versión publicada en Maven Central no se puede borrar ni modificar: cualquier corrección se publica como una versión nueva.
+
+Las credenciales de publicación y la clave GPG no están en el repositorio: el CD las lee de los *secrets* del repositorio en GitHub (`MAVEN_CENTRAL_USERNAME`, `MAVEN_CENTRAL_PASSWORD`, `SIGNING_KEY`, `SIGNING_KEY_ID`, `SIGNING_KEY_PASSWORD`).
 
 ## Limitaciones
 
